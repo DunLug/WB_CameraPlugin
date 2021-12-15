@@ -6,13 +6,17 @@ DEFINES += PLUGINGAZEBO_LIBRARY
 CONFIG += c++11
 
 SOURCES += \
-        cameraplugin.cpp
+        cameraplugin.cpp \
+        networkstreamer.cpp
 
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += gazebo
+unix: PKGCONFIG += libvlc
+unix: PKGCONFIG += gstreamer-1.0
 
 INCLUDEPATH += /usr/include/OGRE
 INCLUDEPATH += /usr/include/OGRE/Paging
 
 HEADERS += \
-    cameraplugin.h
+    cameraplugin.h \
+    networkstreamer.h

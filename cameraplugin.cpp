@@ -6,7 +6,7 @@ GZ_REGISTER_SENSOR_PLUGIN(WB_CameraPlugin)
 
 /////////////////////////////////////////////////
 WB_CameraPlugin::WB_CameraPlugin()
-: SensorPlugin(), width(0), height(0), depth(0)
+    : SensorPlugin(), width(0), height(0), depth(0), streamer(NetworkStreamer::get_instance())
 {
 }
 
@@ -16,6 +16,7 @@ WB_CameraPlugin::~WB_CameraPlugin()
   this->newFrameConnection.reset();
   this->parentSensor.reset();
   this->camera.reset();
+    delete &streamer;
 }
 
 /////////////////////////////////////////////////
@@ -46,6 +47,8 @@ void WB_CameraPlugin::Load(sensors::SensorPtr _sensor, sdf::ElementPtr /*_sdf*/)
   this->height = this->camera->ImageHeight();
   this->depth = this->camera->ImageDepth();
   this->format = this->camera->ImageFormat();
+  streamer.set_size(width, height, depth);
+  streamer.run();
 
   this->newFrameConnection = this->camera->ConnectNewImageFrame(
       std::bind(&WB_CameraPlugin::OnNewFrame, this,
@@ -56,17 +59,14 @@ void WB_CameraPlugin::Load(sensors::SensorPtr _sensor, sdf::ElementPtr /*_sdf*/)
 }
 
 /////////////////////////////////////////////////
-void WB_CameraPlugin::OnNewFrame(const unsigned char * /*_image*/,
-                              unsigned int /*_width*/,
-                              unsigned int /*_height*/,
-                              unsigned int /*_depth*/,
-                              const std::string &/*_format*/)
+void WB_CameraPlugin::OnNewFrame(const unsigned char * image,
+                                 unsigned int width,
+                                 unsigned int height,
+                                 unsigned int depth,
+                                 const std::string &format)
 {
 
-    gzmsg << "Received frame" << std::endl;
-  /*rendering::Camera::SaveFrame(_image, this->width,
-    this->height, this->depth, this->format,
-    "/tmp/camera/me.jpg");
-    */
+   // gzmsg << "Received frame" << std::endl;
+    streamer.update_image(image, width, height, depth, format);
 }
 
