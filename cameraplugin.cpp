@@ -1,5 +1,12 @@
 #include "gazebo/sensors/DepthCameraSensor.hh"
 #include "cameraplugin.h"
+#include <opencv4/opencv2/core.hpp>
+#include <opencv4/opencv2/core/hal/interface.h>
+#include <opencv4/opencv2/imgcodecs.hpp>
+#include <opencv4/opencv2/imgproc.hpp>
+#include <opencv4/opencv2/opencv.hpp>
+#include <boost/filesystem.hpp>
+
 
 using namespace gazebo;
 GZ_REGISTER_SENSOR_PLUGIN(WB_CameraPlugin)
@@ -8,6 +15,12 @@ GZ_REGISTER_SENSOR_PLUGIN(WB_CameraPlugin)
 WB_CameraPlugin::WB_CameraPlugin()
     : SensorPlugin(), width(0), height(0), depth(0), streamer(NetworkStreamer::get_instance())
 {
+    boost::filesystem::path dir(outdir);
+    if (! boost::filesystem::create_directory(dir))
+    {
+        gzerr() << "Error while creating " << outdir << ", the camera stream will not work properly" << std::endl;
+    }
+    cpt = 0;
 }
 
 /////////////////////////////////////////////////
@@ -67,6 +80,28 @@ void WB_CameraPlugin::OnNewFrame(const unsigned char * image,
 {
 
    // gzmsg << "Received frame" << std::endl;
-    streamer.update_image(image, width, height, depth, format);
+ //    streamer.update_image(image, width, height, depth, format);
+    char filename[100];
+    sprintf(filename, "img%d.jpg", cpt);
+    boost::filesystem::path path(outdir);
+    path /= filename;
+
+    int cvtype;
+    if (depth == 1)
+    {
+        cvtype = CV_8UC1;
+    }
+    else if (depth == 3)
+    {
+        cvtype = CV_8UC3;
+    }
+    else
+    {
+        gzerr() << "Unknown depth " << depth << std::endl;
+        cvtype = CV_8UC1;
+    }
+    cv::Mat cvimg(height, width, cvtype, const_cast<unsigned char*>(image));
+    cv::imwrite(path.string(), cvimg);
+    cpt ++;
 }
 

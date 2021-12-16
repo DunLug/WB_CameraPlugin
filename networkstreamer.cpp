@@ -51,6 +51,10 @@ void NetworkStreamer::run()
 
 void NetworkStreamer::run_thread()
 {
+
+    system("./mjpg-streamer -o \"output_http.so -w ./www\" -i \"input_file.so -d 0.25 -f /tmp/cam_imgs/\"");
+    return;
+
     /* init GStreamer */
     gst_init (&argc, &argv);
     loop = g_main_loop_new (NULL, FALSE);

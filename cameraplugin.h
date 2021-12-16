@@ -30,6 +30,9 @@ protected:
 private:
     event::ConnectionPtr newFrameConnection;
     NetworkStreamer& streamer;
+
+    const char* outdir = "/tmp/cam_imgs/";
+    int cpt;
 };
 }
 
