@@ -82,26 +82,29 @@ void WB_CameraPlugin::OnNewFrame(const unsigned char * image,
    // gzmsg << "Received frame" << std::endl;
  //    streamer.update_image(image, width, height, depth, format);
     char filename[100];
-    sprintf(filename, "img%d.jpg", cpt);
-    boost::filesystem::path path(outdir);
-    path /= filename;
-
-    int cvtype;
-    if (depth == 1)
+    if (cpt % 10 == 0)
     {
-        cvtype = CV_8UC1;
+        sprintf(filename, "img%d.jpg", cpt/10);
+        boost::filesystem::path path(outdir);
+        path /= filename;
+    
+        int cvtype;
+        if (depth == 1)
+        {
+            cvtype = CV_8UC1;
+        }
+        else if (depth == 3)
+        {
+            cvtype = CV_8UC3;
+        }
+        else
+        {
+            gzerr() << "Unknown depth " << depth << std::endl;
+            cvtype = CV_8UC1;
+        }
+        cv::Mat cvimg(height, width, cvtype, const_cast<unsigned char*>(image));
+        cv::imwrite(path.string(), cvimg);
     }
-    else if (depth == 3)
-    {
-        cvtype = CV_8UC3;
-    }
-    else
-    {
-        gzerr() << "Unknown depth " << depth << std::endl;
-        cvtype = CV_8UC1;
-    }
-    cv::Mat cvimg(height, width, cvtype, const_cast<unsigned char*>(image));
-    cv::imwrite(path.string(), cvimg);
     cpt ++;
 }
 
